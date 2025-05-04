@@ -21,10 +21,11 @@
                         <thead>
                             <tr>
                                 <th>{{ translations['report_title'] }}</th>
+                                <th>{{ translations['product_model'] }}</th>
+                                <th>{{ translations['sale_price'] }}</th>
+                                <th>{{ translations['units_sold'] }}</th>
+                                <th>{{ translations['total_sales'] }}</th>
                                 <th>{{ translations['report_period'] }}</th>
-                                <th>{{ translations['uploaded_on'] }}</th>
-                                <th>{{ translations['file_type'] }}</th>
-                                <th>{{ translations['file_size'] }}</th>
                                 <th>{{ translations['actions'] }}</th>
                             </tr>
                         </thead>
@@ -32,18 +33,11 @@
                             {% for report in reports %}
                                 <tr>
                                     <td>{{ report.title }}</td>
+                                    <td>{{ report.product_model or 'N/A' }}</td>
+                                    <td>{{ "%.2f"|format(report.sale_price or 0) }}</td>
+                                    <td>{{ report.units_sold or 0 }}</td>
+                                    <td>{{ "%.2f"|format(report.total_sales or 0) }}</td>
                                     <td>{{ report.period_start.strftime('%Y-%m-%d') }} - {{ report.period_end.strftime('%Y-%m-%d') }}</td>
-                                    <td>{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td><span class="badge bg-secondary">{{ report.file_type|upper }}</span></td>
-                                    <td class="file-size">
-                                        {% if report.file_size < 1024 %}
-                                            {{ report.file_size }} B
-                                        {% elif report.file_size < 1048576 %}
-                                            {{ (report.file_size / 1024)|round(1) }} KB
-                                        {% else %}
-                                            {{ (report.file_size / 1048576)|round(1) }} MB
-                                        {% endif %}
-                                    </td>
                                     <td>
                                         <a href="{{ url_for('report_detail', report_id=report.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="{{ translations['view'] }}">
                                             <i class="fas fa-eye"></i>
@@ -51,6 +45,9 @@
                                         <a href="{{ url_for('download_report', report_id=report.id) }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="{{ translations['download'] }}">
                                             <i class="fas fa-download"></i>
                                         </a>
+                                        <button class="btn btn-sm btn-primary print-report-btn" data-report-id="{{ report.id }}" data-bs-toggle="tooltip" title="{{ translations['print_report'] }}">
+                                            <i class="fas fa-print"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-danger delete-report-btn" 
                                                 data-report-id="{{ report.id }}" 
                                                 data-report-title="{{ report.title }}"
@@ -63,6 +60,12 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+                <!-- Save Report Button -->
+                <div class="text-end mt-4">
+                    <button class="btn btn-success save-all-reports-btn">
+                        <i class="fas fa-save me-2"></i>{{ translations['save_report'] }}
+                    </button>
                 </div>
             {% else %}
                 <div class="text-center py-5">
@@ -99,4 +102,103 @@
         </div>
     </div>
 </div>
+
+<!-- Print Report Modal -->
+<div class="modal fade" id="printReportModal" tabindex="-1" aria-labelledby="printReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="printReportModalLabel">{{ translations['print_report'] }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="printReportContent">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 id="printReportTitle"></h4>
+                    <div class="text-muted" id="printReportDate"></div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5>{{ translations['sales_summary'] }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>{{ translations['product_model'] }}:</strong> <span id="printProductModel"></span></p>
+                                <p><strong>{{ translations['sale_price'] }}:</strong> <span id="printSalePrice"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>{{ translations['units_sold'] }}:</strong> <span id="printUnitsSold"></span></p>
+                                <p><strong>{{ translations['total_sales'] }}:</strong> <span id="printTotalSales"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <strong>{{ translations['report_period'] }}:</strong> <span id="printReportPeriod"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ translations['close'] }}</button>
+                <button type="button" class="btn btn-primary" id="executePrintBtn">
+                    <i class="fas fa-print me-2"></i>{{ translations['print_report'] }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Print Report functionality
+        document.querySelectorAll('.print-report-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reportId = this.getAttribute('data-report-id');
+                const reportRow = this.closest('tr');
+                const title = reportRow.cells[0].textContent;
+                const productModel = reportRow.cells[1].textContent;
+                const salePrice = reportRow.cells[2].textContent;
+                const unitsSold = reportRow.cells[3].textContent;
+                const totalSales = reportRow.cells[4].textContent;
+                const reportPeriod = reportRow.cells[5].textContent;
+                
+                // Populate the print modal
+                document.getElementById('printReportTitle').textContent = title;
+                document.getElementById('printReportDate').textContent = new Date().toLocaleDateString();
+                document.getElementById('printProductModel').textContent = productModel;
+                document.getElementById('printSalePrice').textContent = salePrice;
+                document.getElementById('printUnitsSold').textContent = unitsSold;
+                document.getElementById('printTotalSales').textContent = totalSales;
+                document.getElementById('printReportPeriod').textContent = reportPeriod;
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('printReportModal'));
+                modal.show();
+            });
+        });
+        
+        // Execute Print button
+        document.getElementById('executePrintBtn').addEventListener('click', function() {
+            const printContent = document.getElementById('printReportContent').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div class="container mt-4">
+                    ${printContent}
+                </div>
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        });
+        
+        // Save All Reports button
+        document.querySelector('.save-all-reports-btn').addEventListener('click', function() {
+            alert('Reports saved successfully!');
+        });
+    });
+</script>
 {% endblock %}

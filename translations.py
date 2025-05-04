@@ -86,6 +86,14 @@ def get_translations(language='en'):
             'report_deleted': 'Report deleted successfully!',
             'confirm_delete': 'Are you sure you want to delete this report?',
             'delete_report': 'Delete Report',
+            'product_model': 'Product Model',
+            'sale_price': 'Sale Price',
+            'units_sold': 'Units Sold',
+            'total_sales': 'Total Sales',
+            'save_report': 'Save Report',
+            'print_report': 'Print Report',
+            'upload_first_report': 'Upload your first report to get started.',
+            'sales_summary': 'Sales Summary',
             
             # Upload
             'upload_report': 'Upload Sales Report',
@@ -187,6 +195,14 @@ def get_translations(language='en'):
             'report_deleted': 'تم حذف التقرير بنجاح!',
             'confirm_delete': 'هل أنت متأكد من رغبتك في حذف هذا التقرير؟',
             'delete_report': 'حذف التقرير',
+            'product_model': 'موديل المنتج',
+            'sale_price': 'سعر البيع',
+            'units_sold': 'عدد الأجهزة المباعة',
+            'total_sales': 'إجمالي المبيعات',
+            'save_report': 'حفظ التقرير',
+            'print_report': 'طباعة التقرير',
+            'upload_first_report': 'قم برفع تقريرك الأول للبدء.',
+            'sales_summary': 'ملخص المبيعات',
             
             # Upload
             'upload_report': 'رفع تقرير مبيعات',

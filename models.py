@@ -23,6 +23,13 @@ class Report(db.Model):
     file_type = db.Column(db.String(64))
     period_start = db.Column(db.Date)
     period_end = db.Column(db.Date)
+    
+    # New fields for sales reports
+    product_model = db.Column(db.String(128))
+    sale_price = db.Column(db.Float)
+    units_sold = db.Column(db.Integer)
+    total_sales = db.Column(db.Float)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
