@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ translations['app_name'] }} - {{ report.title }}{% endblock %}
+{% block title %}{{ translations['app_name'] }} - {{ report.employee_name }}{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -9,70 +9,58 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">{{ translations['dashboard'] }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('reports') }}">{{ translations['reports'] }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ report.title }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ report.employee_name }}</li>
         </ol>
     </nav>
     
     <!-- Report Details Card -->
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">{{ translations['report_details'] }}</h4>
+    <div class="card shadow border-0 rounded-lg">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+            <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>{{ translations['sales_report'] }}</h4>
             <div>
-                <button class="btn btn-success btn-sm print-report-btn" id="printBtn">
+                <button class="btn btn-light btn-sm print-report-btn" id="printBtn">
                     <i class="fas fa-print me-1"></i>{{ translations['print_report'] }}
                 </button>
-                <a href="{{ url_for('download_report', report_id=report.id) }}" class="btn btn-light btn-sm">
-                    <i class="fas fa-download me-1"></i>{{ translations['download'] }}
-                </a>
                 <button class="btn btn-danger btn-sm delete-report-btn" 
                         data-report-id="{{ report.id }}" 
-                        data-report-title="{{ report.title }}">
+                        data-report-title="{{ report.employee_name }}">
                     <i class="fas fa-trash me-1"></i>{{ translations['delete'] }}
                 </button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row">
+        <div class="card-body p-4">
+            <div class="row mb-4">
                 <div class="col-md-6">
-                    <h5>{{ translations['report_title'] }}</h5>
-                    <p class="lead">{{ report.title }}</p>
-                    
-                    {% if report.description %}
-                        <h5>{{ translations['report_description'] }}</h5>
-                        <p>{{ report.description }}</p>
-                    {% endif %}
-                    
-                    <h5>{{ translations['report_period'] }}</h5>
-                    <p>{{ report.period_start.strftime('%Y-%m-%d') }} - {{ report.period_end.strftime('%Y-%m-%d') }}</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-user-circle text-primary fs-4 me-2"></i>
+                        <h5 class="mb-0">{{ translations['employee_information'] }}</h5>
+                    </div>
+                    <div class="card border-0 bg-light p-3 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{{ translations['employee_name'] }}:</span>
+                            <span class="fw-bold">{{ report.employee_name }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">{{ translations['report_date'] }}:</span>
+                            <span>{{ report.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <h5>{{ translations['file_details'] }}</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ translations['file_name'] }}
-                            <span>{{ report.filename }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ translations['file_type'] }}
-                            <span class="badge bg-secondary">{{ report.file_type|upper }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ translations['file_size'] }}
-                            <span>
-                                {% if report.file_size < 1024 %}
-                                    {{ report.file_size }} B
-                                {% elif report.file_size < 1048576 %}
-                                    {{ (report.file_size / 1024)|round(1) }} KB
-                                {% else %}
-                                    {{ (report.file_size / 1048576)|round(1) }} MB
-                                {% endif %}
-                            </span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ translations['uploaded_on'] }}
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-info-circle text-primary fs-4 me-2"></i>
+                        <h5 class="mb-0">{{ translations['report_information'] }}</h5>
+                    </div>
+                    <div class="card border-0 bg-light p-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{{ translations['report_id'] }}:</span>
+                            <span>#{{ report.id }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">{{ translations['created_at'] }}:</span>
                             <span>{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
             

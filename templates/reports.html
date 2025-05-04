@@ -20,24 +20,24 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>{{ translations['report_title'] }}</th>
+                                <th>{{ translations['employee_name'] }}</th>
                                 <th>{{ translations['product_model'] }}</th>
                                 <th>{{ translations['sale_price'] }}</th>
                                 <th>{{ translations['units_sold'] }}</th>
                                 <th>{{ translations['total_sales'] }}</th>
-                                <th>{{ translations['report_period'] }}</th>
+                                <th>{{ translations['report_date'] }}</th>
                                 <th>{{ translations['actions'] }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for report in reports %}
                                 <tr>
-                                    <td>{{ report.title }}</td>
+                                    <td>{{ report.employee_name }}</td>
                                     <td>{{ report.product_model or 'N/A' }}</td>
                                     <td>{{ "%.2f"|format(report.sale_price or 0) }}</td>
                                     <td>{{ report.units_sold or 0 }}</td>
                                     <td>{{ "%.2f"|format(report.total_sales or 0) }}</td>
-                                    <td>{{ report.period_start.strftime('%Y-%m-%d') }} - {{ report.period_end.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ report.created_at.strftime('%Y-%m-%d') }}</td>
                                     <td>
                                         <a href="{{ url_for('report_detail', report_id=report.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="{{ translations['view'] }}">
                                             <i class="fas fa-eye"></i>
@@ -50,7 +50,7 @@
                                         </button>
                                         <button class="btn btn-sm btn-danger delete-report-btn" 
                                                 data-report-id="{{ report.id }}" 
-                                                data-report-title="{{ report.title }}"
+                                                data-report-title="{{ report.employee_name }}"
                                                 data-bs-toggle="tooltip" 
                                                 title="{{ translations['delete'] }}">
                                             <i class="fas fa-trash"></i>
@@ -134,7 +134,7 @@
                     </div>
                 </div>
                 <div class="alert alert-info">
-                    <strong>{{ translations['report_period'] }}:</strong> <span id="printReportPeriod"></span>
+                    <strong>{{ translations['report_date'] }}:</strong> <span id="printReportPeriod"></span>
                 </div>
             </div>
             <div class="modal-footer">

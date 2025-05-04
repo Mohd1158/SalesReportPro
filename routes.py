@@ -139,24 +139,8 @@ def setup_routes(app):
             
         return render_template('report_detail.html', report=report, translations=translations, now=datetime.now())
     
-    # Route for downloading report
-    @app.route('/reports/<int:report_id>/download')
-    @login_required
-    def download_report(report_id):
-        report = Report.query.get_or_404(report_id)
-        translations = get_translations(session.get('language', 'en'))
-        
-        # Check if report belongs to the current user
-        if report.user_id != current_user.id:
-            flash(translations['not_authorized'], 'danger')
-            return redirect(url_for('reports'))
-            
-        return send_from_directory(
-            app.config['UPLOAD_FOLDER'],
-            report.file_path,
-            as_attachment=True,
-            download_name=report.filename
-        )
+    # Export report functionality will be implemented later
+    # Previously had download_report here
     
     # Route for deleting a report
     @app.route('/reports/<int:report_id>/delete', methods=['POST'])
@@ -169,12 +153,6 @@ def setup_routes(app):
         if report.user_id != current_user.id:
             flash(translations['not_authorized'], 'danger')
             return redirect(url_for('reports'))
-            
-        # Delete the file
-        try:
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], report.file_path))
-        except Exception as e:
-            app.logger.error(f"Error deleting file: {e}")
             
         # Delete the record
         db.session.delete(report)
