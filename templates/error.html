@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations['app_name'] }} - {{ error_code }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="error-page">
+        <div class="error-code">{{ error_code }}</div>
+        <div class="error-message">{{ error_message }}</div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-home me-2"></i>{{ translations['back_to_home'] }}
+        </a>
+    </div>
+</div>
+{% endblock %}

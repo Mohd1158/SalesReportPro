@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations['app_name'] }} - {{ translations['home'] }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">{{ translations['welcome_message'] }}</h1>
+        <p class="lead mb-5">{{ translations['tagline'] }}</p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>{{ translations['dashboard'] }}
+            </a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-user-plus me-2"></i>{{ translations['get_started'] }}
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>{{ translations['login'] }}
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="text-center mb-5">{{ translations['app_name'] }} {{ translations['features'] }}</h2>
+        
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-primary text-white mx-auto">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h5 class="card-title">{{ translations['feature_1_title'] }}</h5>
+                        <p class="card-text">{{ translations['feature_1_desc'] }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-info text-white mx-auto">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h5 class="card-title">{{ translations['feature_2_title'] }}</h5>
+                        <p class="card-text">{{ translations['feature_2_desc'] }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-success text-white mx-auto">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h5 class="card-title">{{ translations['feature_3_title'] }}</h5>
+                        <p class="card-text">{{ translations['feature_3_desc'] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-dark text-light py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">{{ translations['ready_to_start'] }}</h2>
+        <p class="lead mb-4">{{ translations['join_today'] }}</p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>{{ translations['create_account'] }}
+            </a>
+        {% else %}
+            <a href="{{ url_for('upload_report') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-upload me-2"></i>{{ translations['upload_new_report'] }}
+            </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

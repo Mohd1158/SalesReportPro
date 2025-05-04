@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations['app_name'] }} - {{ translations['upload_report'] }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-upload me-2"></i>{{ translations['upload_report'] }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('upload_report') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">{{ translations['report_title'] }} *</label>
+                            {{ form.title(class="form-control", placeholder=translations['report_title_placeholder']) }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.title.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{{ translations['report_description'] }}</label>
+                            {{ form.description(class="form-control", rows=3, placeholder=translations['report_description_placeholder']) }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="period_start" class="form-label">{{ translations['period_start'] }} *</label>
+                                {{ form.period_start(class="form-control", type="date") }}
+                                {% if form.period_start.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.period_start.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="period_end" class="form-label">{{ translations['period_end'] }} *</label>
+                                {{ form.period_end(class="form-control", type="date") }}
+                                {% if form.period_end.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.period_end.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">{{ translations['report_file'] }} *</label>
+                            <div class="file-upload-wrapper">
+                                <div class="text-center">
+                                    <i class="fas fa-file-upload fa-3x mb-3"></i>
+                                    <h5>{{ translations['select_file'] }}</h5>
+                                    <p class="text-muted">{{ translations['drag_drop'] }}</p>
+                                    <p class="small text-muted">
+                                        {{ translations['allowed_formats'] }}<br>
+                                        {{ translations['max_file_size'] }}
+                                    </p>
+                                </div>
+                                {{ form.report_file(class="file-upload-input") }}
+                            </div>
+                            {% if form.report_file.errors %}
+                                <div class="invalid-feedback d-block mt-2">
+                                    {% for error in form.report_file.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>{{ translations['cancel'] }}
+                            </a>
+                            {{ form.submit(class="btn btn-primary", value=translations['upload']) }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

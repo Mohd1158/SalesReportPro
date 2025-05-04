@@ -1,0 +1,140 @@
+/* Custom CSS for Sales Reports Manager */
+
+/* RTL Support */
+.rtl {
+    text-align: right;
+}
+
+/* Language Toggle */
+.language-toggle {
+    cursor: pointer;
+}
+
+/* Upload Form */
+.file-upload-wrapper {
+    position: relative;
+    border: 2px dashed var(--bs-secondary);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.file-upload-wrapper:hover {
+    border-color: var(--bs-primary);
+}
+
+.file-upload-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Report Card */
+.report-card {
+    transition: transform 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Dashboard Stats */
+.stat-card {
+    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Common spacing utility */
+.section-padding {
+    padding: 4rem 0;
+}
+
+/* Form focus states - maintain theme compatibility */
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-info-rgb), 0.25);
+}
+
+/* File size formatter */
+.file-size {
+    font-size: 0.875rem;
+}
+
+/* Hero section for home page */
+.hero-section {
+    padding: 6rem 0;
+    background: var(--bs-dark);
+    color: var(--bs-light);
+}
+
+.feature-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050;
+}
+
+.rtl .toast-container {
+    left: 1rem;
+    right: auto;
+}
+
+/* Custom loading spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Error page */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+}
+
+.error-code {
+    font-size: 6rem;
+    font-weight: bold;
+}
+
+.error-message {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
