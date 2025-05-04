@@ -100,13 +100,17 @@ def get_translations(language='en'):
             
             # Upload
             'upload_report': 'Upload Sales Report',
-            'report_title_placeholder': 'Enter report title',
-            'report_description_placeholder': 'Enter report description (optional)',
-            'select_file': 'Select File',
-            'drag_drop': 'or drag and drop file here',
-            'allowed_formats': 'Allowed formats: CSV, Excel, PDF',
-            'max_file_size': 'Maximum file size: 16MB',
-            'invalid_file': 'Invalid file format. Please upload CSV, Excel, or PDF files only.',
+            'sales_report': 'Sales Report',
+            'employee_name': 'Employee Name',
+            'employee_information': 'Employee Information',
+            'report_information': 'Report Information',
+            'report_id': 'Report ID',
+            'created_at': 'Created At',
+            'sales_details': 'Sales Details',
+            'export': 'Export',
+            'export_success': 'Report exported successfully!',
+            'save_success': 'Reports saved successfully!',
+            'submitting': 'Submitting',
             
             # Errors
             'not_found': 'Page not found',
@@ -212,13 +216,17 @@ def get_translations(language='en'):
             
             # Upload
             'upload_report': 'رفع تقرير مبيعات',
-            'report_title_placeholder': 'أدخل عنوان التقرير',
-            'report_description_placeholder': 'أدخل وصف التقرير (اختياري)',
-            'select_file': 'اختر ملف',
-            'drag_drop': 'أو اسحب وأفلت الملف هنا',
-            'allowed_formats': 'التنسيقات المسموح بها: CSV، Excel، PDF',
-            'max_file_size': 'الحد الأقصى لحجم الملف: 16 ميجابايت',
-            'invalid_file': 'تنسيق ملف غير صالح. الرجاء تحميل ملفات CSV أو Excel أو PDF فقط.',
+            'sales_report': 'تقرير المبيعات',
+            'employee_name': 'اسم الموظف',
+            'employee_information': 'معلومات الموظف',
+            'report_information': 'معلومات التقرير',
+            'report_id': 'رقم التقرير',
+            'created_at': 'تاريخ الإنشاء',
+            'sales_details': 'تفاصيل المبيعات',
+            'export': 'تصدير',
+            'export_success': 'تم تصدير التقرير بنجاح!',
+            'save_success': 'تم حفظ التقارير بنجاح!',
+            'submitting': 'جاري الإرسال',
             
             # Errors
             'not_found': 'الصفحة غير موجودة',

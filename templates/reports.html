@@ -42,9 +42,9 @@
                                         <a href="{{ url_for('report_detail', report_id=report.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="{{ translations['view'] }}">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ url_for('download_report', report_id=report.id) }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="{{ translations['download'] }}">
-                                            <i class="fas fa-download"></i>
-                                        </a>
+                                        <button class="btn btn-sm btn-success export-report-btn" data-report-id="{{ report.id }}" data-bs-toggle="tooltip" title="{{ translations['export'] }}">
+                                            <i class="fas fa-file-export"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-primary print-report-btn" data-report-id="{{ report.id }}" data-bs-toggle="tooltip" title="{{ translations['print_report'] }}">
                                             <i class="fas fa-print"></i>
                                         </button>
@@ -197,7 +197,48 @@
         
         // Save All Reports button
         document.querySelector('.save-all-reports-btn').addEventListener('click', function() {
-            alert('Reports saved successfully!');
+            alert('{{ translations["save_success"] or "Reports saved successfully!" }}');
+        });
+        
+        // Export Report button
+        document.querySelectorAll('.export-report-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reportId = this.getAttribute('data-report-id');
+                const reportRow = this.closest('tr');
+                const employeeName = reportRow.cells[0].textContent;
+                const productModel = reportRow.cells[1].textContent;
+                const salePrice = reportRow.cells[2].textContent;
+                const unitsSold = reportRow.cells[3].textContent;
+                const totalSales = reportRow.cells[4].textContent;
+                const reportDate = reportRow.cells[5].textContent;
+                
+                const reportData = {
+                    employee_name: employeeName,
+                    report_date: reportDate,
+                    product_model: productModel,
+                    sale_price: salePrice,
+                    units_sold: unitsSold,
+                    total_sales: totalSales
+                };
+                
+                // Create CSV content
+                const csvContent = Object.keys(reportData).map(key => 
+                    `${key},${reportData[key]}`
+                ).join('\n');
+                
+                // Create a blob and download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `report-${reportId}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert('{{ translations["export_success"] or "Report exported successfully!" }}');
+            });
         });
     });
 </script>

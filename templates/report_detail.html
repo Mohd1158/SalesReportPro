@@ -21,6 +21,9 @@
                 <button class="btn btn-light btn-sm print-report-btn" id="printBtn">
                     <i class="fas fa-print me-1"></i>{{ translations['print_report'] }}
                 </button>
+                <button class="btn btn-light btn-sm export-report-btn">
+                    <i class="fas fa-file-export me-1"></i>{{ translations['export'] }}
+                </button>
                 <button class="btn btn-danger btn-sm delete-report-btn" 
                         data-report-id="{{ report.id }}" 
                         data-report-title="{{ report.employee_name }}">
@@ -161,6 +164,36 @@
         // Save Report
         document.querySelector('.save-report-btn').addEventListener('click', function() {
             alert('تم حفظ التقرير بنجاح!');
+        });
+        
+        // Export Report
+        document.querySelector('.export-report-btn').addEventListener('click', function() {
+            const reportData = {
+                employee_name: "{{ report.employee_name }}",
+                report_date: "{{ report.created_at.strftime('%Y-%m-%d') }}",
+                product_model: "{{ report.product_model }}",
+                sale_price: {{ report.sale_price }},
+                units_sold: {{ report.units_sold }},
+                total_sales: {{ report.total_sales }}
+            };
+            
+            // Create CSV content
+            const csvContent = Object.keys(reportData).map(key => 
+                `${key},${reportData[key]}`
+            ).join('\n');
+            
+            // Create a blob and download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `report-{{ report.id }}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('{{ translations["export_success"] or "Report exported successfully!" }}');
         });
     });
 </script>
