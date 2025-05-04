@@ -100,37 +100,20 @@ def setup_routes(app):
         form = ReportUploadForm()
         
         if form.validate_on_submit():
-            file = form.report_file.data
-            if file and allowed_file(file.filename):
-                # Generate unique filename
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                file.save(file_path)
-                
-                # Create report record
-                report = Report(
-                    title=form.title.data,
-                    description=form.description.data,
-                    filename=filename,
-                    file_path=unique_filename,
-                    file_size=os.path.getsize(file_path),
-                    file_type=filename.rsplit('.', 1)[1].lower(),
-                    period_start=form.period_start.data,
-                    period_end=form.period_end.data,
-                    product_model=form.product_model.data,
-                    sale_price=form.sale_price.data,
-                    units_sold=form.units_sold.data,
-                    total_sales=form.total_sales.data,
-                    user_id=current_user.id
-                )
-                db.session.add(report)
-                db.session.commit()
-                
-                flash(translations['report_uploaded'], 'success')
-                return redirect(url_for('reports'))
-            else:
-                flash(translations['invalid_file'], 'danger')
+            # Create report record with simplified fields
+            report = Report(
+                employee_name=form.employee_name.data,
+                product_model=form.product_model.data,
+                sale_price=form.sale_price.data,
+                units_sold=form.units_sold.data,
+                total_sales=form.total_sales.data,
+                user_id=current_user.id
+            )
+            db.session.add(report)
+            db.session.commit()
+            
+            flash(translations['report_uploaded'], 'success')
+            return redirect(url_for('reports'))
                 
         return render_template('upload_report.html', form=form, translations=translations, now=datetime.now())
     

@@ -53,6 +53,56 @@
     transform: translateY(-5px);
 }
 
+/* Form Enhancements */
+.form-floating {
+    margin-bottom: 1rem;
+}
+
+.form-floating > .form-control {
+    padding: 1rem 0.75rem;
+}
+
+.form-floating > label {
+    padding: 1rem 0.75rem;
+}
+
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading:before {
+    content: '';
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Card Adjustments */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .form-floating > .form-control {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .form-floating > label {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
 /* Dashboard Stats */
 .stat-card {
     border-radius: 1rem;

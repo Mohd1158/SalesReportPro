@@ -5,149 +5,113 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-upload me-2"></i>{{ translations['upload_report'] }}</h4>
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>{{ translations['sales_report'] }}</h4>
+                    <p class="small mb-0 mt-1">{{ now.strftime('%Y-%m-%d') }}</p>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('upload_report') }}" enctype="multipart/form-data">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('upload_report') }}">
                         {{ form.hidden_tag() }}
                         
-                        <div class="mb-3">
-                            <label for="title" class="form-label">{{ translations['report_title'] }} *</label>
-                            {{ form.title(class="form-control", placeholder=translations['report_title_placeholder']) }}
-                            {% if form.title.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.title.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
+                        <!-- Employee Information -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-user-circle text-primary fs-4 me-2"></i>
+                                <h5 class="mb-0">{{ translations['employee_information'] }}</h5>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-2">
+                                        {{ form.employee_name(class="form-control", id="employee_name", placeholder="Employee Name") }}
+                                        <label for="employee_name">{{ translations['employee_name'] }}</label>
+                                        {% if form.employee_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.employee_name.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">{{ translations['report_description'] }}</label>
-                            {{ form.description(class="form-control", rows=3, placeholder=translations['report_description_placeholder']) }}
-                            {% if form.description.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.description.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-2">
+                                        <input type="text" class="form-control" id="current_date" value="{{ now.strftime('%Y-%m-%d') }}" readonly>
+                                        <label for="current_date">{{ translations['report_date'] }}</label>
+                                    </div>
                                 </div>
-                            {% endif %}
+                            </div>
                         </div>
                         
                         <!-- Sales Data Section -->
                         <div class="mb-4">
-                            <h5 class="border-bottom pb-2 mb-3">{{ translations['sales_summary'] }}</h5>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="product_model" class="form-label">{{ translations['product_model'] }}</label>
-                                    {{ form.product_model(class="form-control") }}
-                                    {% if form.product_model.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.product_model.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="sale_price" class="form-label">{{ translations['sale_price'] }}</label>
-                                    {{ form.sale_price(class="form-control", type="number", step="0.01", min="0") }}
-                                    {% if form.sale_price.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.sale_price.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-shopping-cart text-primary fs-4 me-2"></i>
+                                <h5 class="mb-0">{{ translations['sales_details'] }}</h5>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="units_sold" class="form-label">{{ translations['units_sold'] }}</label>
-                                    {{ form.units_sold(class="form-control", type="number", min="0") }}
-                                    {% if form.units_sold.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.units_sold.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="form-floating mb-2">
+                                        {{ form.product_model(class="form-control", id="product_model", placeholder="Product Model") }}
+                                        <label for="product_model">{{ translations['product_model'] }}</label>
+                                        {% if form.product_model.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.product_model.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="total_sales" class="form-label">{{ translations['total_sales'] }}</label>
-                                    {{ form.total_sales(class="form-control", type="number", step="0.01", min="0") }}
-                                    {% if form.total_sales.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.total_sales.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                <div class="col-lg-6">
+                                    <div class="form-floating mb-2">
+                                        {{ form.sale_price(class="form-control", id="sale_price", placeholder="Sale Price", type="number", step="0.01", min="0") }}
+                                        <label for="sale_price">{{ translations['sale_price'] }}</label>
+                                        {% if form.sale_price.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.sale_price.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Report Period Section -->
-                        <div class="mb-4">
-                            <h5 class="border-bottom pb-2 mb-3">{{ translations['report_period'] }}</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="period_start" class="form-label">{{ translations['period_start'] }} *</label>
-                                    {{ form.period_start(class="form-control", type="date") }}
-                                    {% if form.period_start.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.period_start.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                <div class="col-lg-6">
+                                    <div class="form-floating mb-2">
+                                        {{ form.units_sold(class="form-control", id="units_sold", placeholder="Units Sold", type="number", min="0") }}
+                                        <label for="units_sold">{{ translations['units_sold'] }}</label>
+                                        {% if form.units_sold.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.units_sold.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="period_end" class="form-label">{{ translations['period_end'] }} *</label>
-                                    {{ form.period_end(class="form-control", type="date") }}
-                                    {% if form.period_end.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.period_end.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                <div class="col-lg-6">
+                                    <div class="form-floating mb-2">
+                                        {{ form.total_sales(class="form-control", id="total_sales", placeholder="Total Sales", type="number", step="0.01", min="0") }}
+                                        <label for="total_sales">{{ translations['total_sales'] }}</label>
+                                        {% if form.total_sales.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.total_sales.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label">{{ translations['report_file'] }} *</label>
-                            <div class="file-upload-wrapper">
-                                <div class="text-center">
-                                    <i class="fas fa-file-upload fa-3x mb-3"></i>
-                                    <h5>{{ translations['select_file'] }}</h5>
-                                    <p class="text-muted">{{ translations['drag_drop'] }}</p>
-                                    <p class="small text-muted">
-                                        {{ translations['allowed_formats'] }}<br>
-                                        {{ translations['max_file_size'] }}
-                                    </p>
-                                </div>
-                                {{ form.report_file(class="file-upload-input") }}
-                            </div>
-                            {% if form.report_file.errors %}
-                                <div class="invalid-feedback d-block mt-2">
-                                    {% for error in form.report_file.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>{{ translations['cancel'] }}
+                        <!-- Submit Section -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-light me-md-2">
+                                <i class="fas fa-times me-1"></i>{{ translations['cancel'] }}
                             </a>
-                            {{ form.submit(class="btn btn-primary", value=translations['upload']) }}
+                            {{ form.submit(class="btn btn-primary px-4") }}
                         </div>
                     </form>
                 </div>
@@ -172,52 +136,21 @@
             totalSalesInput.value = totalSales.toFixed(2);
         }
         
+        // Initial calculation
+        calculateTotal();
+        
+        // Recalculate on input
         salePriceInput.addEventListener('input', calculateTotal);
         unitsSoldInput.addEventListener('input', calculateTotal);
         
-        // File upload visual enhancements
-        const fileInput = document.querySelector('.file-upload-input');
-        const fileWrapper = document.querySelector('.file-upload-wrapper');
-        
-        fileInput.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                fileWrapper.querySelector('h5').textContent = fileName;
-                fileWrapper.classList.add('has-file');
-            } else {
-                fileWrapper.querySelector('h5').textContent = "{{ translations['select_file'] }}";
-                fileWrapper.classList.remove('has-file');
+        // Add animation effects on form submit
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            if (this.checkValidity()) {
+                const submitButton = form.querySelector('input[type="submit"]');
+                submitButton.classList.add('btn-loading');
+                submitButton.value = "{{ translations['submitting'] }}...";
             }
-        });
-        
-        // Handle drag and drop
-        fileWrapper.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-        
-        fileWrapper.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-        
-        fileWrapper.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                fileInput.dispatchEvent(new Event('change'));
-            }
-        });
-        
-        // Handle click on wrapper to trigger file input
-        fileWrapper.addEventListener('click', function() {
-            fileInput.click();
-        });
-        
-        // Prevent the file input itself from triggering a click twice
-        fileInput.addEventListener('click', function(e) {
-            e.stopPropagation();
         });
     });
 </script>

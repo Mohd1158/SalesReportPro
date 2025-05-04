@@ -15,24 +15,21 @@ class User(UserMixin, db.Model):
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(128), nullable=False)
-    description = db.Column(db.Text)
-    filename = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(255), nullable=False)
-    file_size = db.Column(db.Integer)  # Size in bytes
-    file_type = db.Column(db.String(64))
-    period_start = db.Column(db.Date)
-    period_end = db.Column(db.Date)
+    # Changed title to employee_name
+    employee_name = db.Column(db.String(128), nullable=False)
+    # Removed description, file fields, and period fields
     
-    # New fields for sales reports
-    product_model = db.Column(db.String(128))
-    sale_price = db.Column(db.Float)
-    units_sold = db.Column(db.Integer)
-    total_sales = db.Column(db.Float)
+    # Sales data fields (now required)
+    product_model = db.Column(db.String(128), nullable=False)
+    sale_price = db.Column(db.Float, nullable=False)
+    units_sold = db.Column(db.Integer, nullable=False)
+    total_sales = db.Column(db.Float, nullable=False)
     
+    # Automatically set dates
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Link to user who created the report
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f'<Report {self.title}>'
+        return f'<Report {self.employee_name} - {self.product_model}>'
