@@ -27,7 +27,11 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")  # Default f
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Needed for url_for to generate with https
 
 # Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///sales_reports.db")
+database_url = os.environ.get("DATABASE_URL", "sqlite:///sales_reports.db")
+# Fix for PostgreSQL URLs from Heroku/render/etc that start with postgres://
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
