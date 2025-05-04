@@ -24,7 +24,7 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="form-floating mb-2">
-                                        {{ form.employee_name(class="form-control", id="employee_name", placeholder="Employee Name") }}
+                                        {{ form.employee_name(class="form-control", id="employee_name", placeholder="Employee Name", readonly=true) }}
                                         <label for="employee_name">{{ translations['employee_name'] }}</label>
                                         {% if form.employee_name.errors %}
                                             <div class="invalid-feedback d-block">

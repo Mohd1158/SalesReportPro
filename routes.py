@@ -99,6 +99,10 @@ def setup_routes(app):
         translations = get_translations(session.get('language', 'en'))
         form = ReportUploadForm()
         
+        # Pre-fill employee name with current user's username
+        if request.method == 'GET':
+            form.employee_name.data = current_user.username
+        
         if form.validate_on_submit():
             # Create report record with simplified fields
             report = Report(

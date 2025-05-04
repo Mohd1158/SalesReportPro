@@ -78,16 +78,16 @@
                                 <tbody>
                                     {% for report in reports %}
                                         <tr>
-                                            <td>{{ report.title }}</td>
+                                            <td>{{ report.employee_name }}</td>
                                             <td>{{ report.created_at.strftime('%Y-%m-%d') }}</td>
-                                            <td><span class="badge bg-secondary">{{ report.file_type|upper }}</span></td>
+                                            <td><span class="badge bg-secondary">SALES DATA</span></td>
                                             <td>
                                                 <a href="{{ url_for('report_detail', report_id=report.id) }}" class="btn btn-sm btn-info">
                                                     <i class="fas fa-eye"></i> {{ translations['view'] }}
                                                 </a>
-                                                <a href="{{ url_for('download_report', report_id=report.id) }}" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-download"></i> {{ translations['download'] }}
-                                                </a>
+                                                <button class="btn btn-sm btn-success export-report-btn" data-report-id="{{ report.id }}">
+                                                    <i class="fas fa-file-export"></i> {{ translations['export'] }}
+                                                </button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -109,4 +109,45 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Export Report button functionality
+        document.querySelectorAll('.export-report-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reportId = this.getAttribute('data-report-id');
+                const reportRow = this.closest('tr');
+                const employeeName = reportRow.cells[0].textContent;
+                const reportDate = reportRow.cells[1].textContent;
+                
+                // Create a simple CSV for this report
+                const reportData = {
+                    employee_name: employeeName,
+                    report_date: reportDate,
+                    report_id: reportId
+                };
+                
+                // Create CSV content
+                const csvContent = Object.keys(reportData).map(key => 
+                    `${key},${reportData[key]}`
+                ).join('\n');
+                
+                // Create a blob and download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `report-${reportId}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert('{{ translations["export_success"] or "Report exported successfully!" }}');
+            });
+        });
+    });
+</script>
 {% endblock %}
