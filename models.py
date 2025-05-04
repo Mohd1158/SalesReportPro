@@ -9,9 +9,22 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     reports = db.relationship('Report', backref='user', lazy='dynamic')
+    
+    # New fields for user roles and approval
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
+    approval_date = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f'<User {self.username}>'
+        
+    def is_administrator(self):
+        """Check if the user has admin privileges"""
+        return self.is_admin
+        
+    def is_account_approved(self):
+        """Check if the user account has been approved by an admin"""
+        return self.is_approved
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
