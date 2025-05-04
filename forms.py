@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, PasswordField, TextAreaField, DateField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from wtforms import StringField, PasswordField, TextAreaField, DateField, SubmitField, FloatField, IntegerField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange
 from models import User
 from app import app
 
@@ -30,6 +30,10 @@ class LoginForm(FlaskForm):
 class ReportUploadForm(FlaskForm):
     title = StringField('Report Title', validators=[DataRequired(), Length(max=128)])
     description = TextAreaField('Description')
+    product_model = StringField('Product Model', validators=[Length(max=128)])
+    sale_price = FloatField('Sale Price', validators=[NumberRange(min=0)])
+    units_sold = IntegerField('Units Sold', validators=[NumberRange(min=0)])
+    total_sales = FloatField('Total Sales', validators=[NumberRange(min=0)])
     report_file = FileField('Report File', validators=[
         FileRequired(),
         FileAllowed(app.config['ALLOWED_EXTENSIONS'], 'Only CSV, Excel, and PDF files are allowed!')

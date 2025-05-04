@@ -94,6 +94,9 @@ def get_translations(language='en'):
             'print_report': 'Print Report',
             'upload_first_report': 'Upload your first report to get started.',
             'sales_summary': 'Sales Summary',
+            'file_details': 'File Details',
+            'file_name': 'File Name',
+            'back_to_reports': 'Back to Reports',
             
             # Upload
             'upload_report': 'Upload Sales Report',
@@ -203,6 +206,9 @@ def get_translations(language='en'):
             'print_report': 'طباعة التقرير',
             'upload_first_report': 'قم برفع تقريرك الأول للبدء.',
             'sales_summary': 'ملخص المبيعات',
+            'file_details': 'تفاصيل الملف',
+            'file_name': 'اسم الملف',
+            'back_to_reports': 'العودة إلى التقارير',
             
             # Upload
             'upload_report': 'رفع تقرير مبيعات',

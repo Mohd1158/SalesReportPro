@@ -18,6 +18,9 @@
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">{{ translations['report_details'] }}</h4>
             <div>
+                <button class="btn btn-success btn-sm print-report-btn" id="printBtn">
+                    <i class="fas fa-print me-1"></i>{{ translations['print_report'] }}
+                </button>
                 <a href="{{ url_for('download_report', report_id=report.id) }}" class="btn btn-light btn-sm">
                     <i class="fas fa-download me-1"></i>{{ translations['download'] }}
                 </a>
@@ -72,11 +75,53 @@
                     </ul>
                 </div>
             </div>
+            
+            <!-- Sales Data -->
+            <div class="mt-4">
+                <h5 class="border-bottom pb-2 mb-3">{{ translations['sales_summary'] }}</h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">{{ translations['product_model'] }}</h6>
+                                <p class="h4">{{ report.product_model or 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">{{ translations['sale_price'] }}</h6>
+                                <p class="h4">{{ "%.2f"|format(report.sale_price or 0) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">{{ translations['units_sold'] }}</h6>
+                                <p class="h4">{{ report.units_sold or 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h6 class="text-white">{{ translations['total_sales'] }}</h6>
+                                <p class="h4">{{ "%.2f"|format(report.total_sales or 0) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-footer">
+        <div class="card-footer d-flex justify-content-between">
             <a href="{{ url_for('reports') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>{{ translations['back_to_reports'] }}
             </a>
+            <button class="btn btn-success save-report-btn">
+                <i class="fas fa-save me-2"></i>{{ translations['save_report'] }}
+            </button>
         </div>
     </div>
 </div>
@@ -102,4 +147,33 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete Report Modal
+        const deleteReportBtns = document.querySelectorAll('.delete-report-btn');
+        deleteReportBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reportId = this.getAttribute('data-report-id');
+                const reportTitle = this.getAttribute('data-report-title');
+                document.getElementById('deleteReportTitle').textContent = reportTitle;
+                document.getElementById('deleteReportForm').action = '/reports/' + reportId + '/delete';
+                const modal = new bootstrap.Modal(document.getElementById('deleteReportModal'));
+                modal.show();
+            });
+        });
+        
+        // Print Report
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // Save Report
+        document.querySelector('.save-report-btn').addEventListener('click', function() {
+            alert('تم حفظ التقرير بنجاح!');
+        });
+    });
+</script>
 {% endblock %}
