@@ -38,28 +38,85 @@
                             {% endif %}
                         </div>
                         
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="period_start" class="form-label">{{ translations['period_start'] }} *</label>
-                                {{ form.period_start(class="form-control", type="date") }}
-                                {% if form.period_start.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.period_start.errors %}
-                                            <span>{{ error }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                        <!-- Sales Data Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">{{ translations['sales_summary'] }}</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="product_model" class="form-label">{{ translations['product_model'] }}</label>
+                                    {{ form.product_model(class="form-control") }}
+                                    {% if form.product_model.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.product_model.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="sale_price" class="form-label">{{ translations['sale_price'] }}</label>
+                                    {{ form.sale_price(class="form-control", type="number", step="0.01", min="0") }}
+                                    {% if form.sale_price.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.sale_price.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="period_end" class="form-label">{{ translations['period_end'] }} *</label>
-                                {{ form.period_end(class="form-control", type="date") }}
-                                {% if form.period_end.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.period_end.errors %}
-                                            <span>{{ error }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="units_sold" class="form-label">{{ translations['units_sold'] }}</label>
+                                    {{ form.units_sold(class="form-control", type="number", min="0") }}
+                                    {% if form.units_sold.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.units_sold.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="total_sales" class="form-label">{{ translations['total_sales'] }}</label>
+                                    {{ form.total_sales(class="form-control", type="number", step="0.01", min="0") }}
+                                    {% if form.total_sales.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.total_sales.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Period Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">{{ translations['report_period'] }}</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="period_start" class="form-label">{{ translations['period_start'] }} *</label>
+                                    {{ form.period_start(class="form-control", type="date") }}
+                                    {% if form.period_start.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.period_start.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="period_end" class="form-label">{{ translations['period_end'] }} *</label>
+                                    {{ form.period_end(class="form-control", type="date") }}
+                                    {% if form.period_end.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.period_end.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         
@@ -98,4 +155,70 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto calculate total sales
+        const salePriceInput = document.getElementById('sale_price');
+        const unitsSoldInput = document.getElementById('units_sold');
+        const totalSalesInput = document.getElementById('total_sales');
+        
+        function calculateTotal() {
+            const salePrice = parseFloat(salePriceInput.value) || 0;
+            const unitsSold = parseInt(unitsSoldInput.value) || 0;
+            const totalSales = salePrice * unitsSold;
+            totalSalesInput.value = totalSales.toFixed(2);
+        }
+        
+        salePriceInput.addEventListener('input', calculateTotal);
+        unitsSoldInput.addEventListener('input', calculateTotal);
+        
+        // File upload visual enhancements
+        const fileInput = document.querySelector('.file-upload-input');
+        const fileWrapper = document.querySelector('.file-upload-wrapper');
+        
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const fileName = this.files[0].name;
+                fileWrapper.querySelector('h5').textContent = fileName;
+                fileWrapper.classList.add('has-file');
+            } else {
+                fileWrapper.querySelector('h5').textContent = "{{ translations['select_file'] }}";
+                fileWrapper.classList.remove('has-file');
+            }
+        });
+        
+        // Handle drag and drop
+        fileWrapper.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        fileWrapper.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        
+        fileWrapper.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        // Handle click on wrapper to trigger file input
+        fileWrapper.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // Prevent the file input itself from triggering a click twice
+        fileInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>
 {% endblock %}

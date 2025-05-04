@@ -118,6 +118,10 @@ def setup_routes(app):
                     file_type=filename.rsplit('.', 1)[1].lower(),
                     period_start=form.period_start.data,
                     period_end=form.period_end.data,
+                    product_model=form.product_model.data,
+                    sale_price=form.sale_price.data,
+                    units_sold=form.units_sold.data,
+                    total_sales=form.total_sales.data,
                     user_id=current_user.id
                 )
                 db.session.add(report)

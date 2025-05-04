@@ -24,6 +24,16 @@
     border-color: var(--bs-primary);
 }
 
+.file-upload-wrapper.dragover {
+    border-color: var(--bs-success);
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+}
+
+.file-upload-wrapper.has-file {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
 .file-upload-input {
     position: absolute;
     top: 0;
