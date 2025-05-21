@@ -7,7 +7,7 @@ from flask_login import LoginManager
 from flask_babel import Babel
 from flask_bcrypt import Bcrypt
 from werkzeug.middleware.proxy_fix import ProxyFix
-from dotenv import load_dotenv
+from dotenv import load_dotenvfrom dotenv import load_dotenv
 
 load_dotenv()
 
