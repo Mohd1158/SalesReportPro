@@ -20,6 +20,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="KHALAIFAT Logo" style="height: 38px; margin-right: 12px; background: #fff; border-radius: 6px; padding: 2px 10px 2px 6px;">
+                <span><i class="fas fa-chart-line me-2"></i>{{ translations['app_name'] }}</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
