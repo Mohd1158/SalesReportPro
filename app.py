@@ -7,6 +7,15 @@ from flask_login import LoginManager
 from flask_babel import Babel
 from flask_bcrypt import Bcrypt
 from werkzeug.middleware.proxy_fix import ProxyFix
+from dotenv import load_dotenvfrom dotenv import load_dotenv
+
+load_dotenv()
+
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
