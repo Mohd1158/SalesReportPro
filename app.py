@@ -9,35 +9,33 @@ from flask_bcrypt import Bcrypt
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 
+# تحميل متغيرات البيئة
 load_dotenv()
 
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
 
-
-
-# Configure logging
+# إعدادات اللوجينق
 logging.basicConfig(level=logging.DEBUG)
 
-# Base class for SQLAlchemy models
+# تعريف Base class للـ SQLAlchemy
 class Base(DeclarativeBase):
     pass
 
-# Initialize extensions
+# تهيئة الإضافات
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 babel = Babel()
 bcrypt = Bcrypt()
 
-# Create Flask app
+# إنشاء التطبيق
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")  # Default for development
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Needed for url_for to generate with https
+app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure database
+# إعدادات قاعدة البيانات
 database_url = os.environ.get("DATABASE_URL", "sqlite:///sales_reports.db")
-# Fix for PostgreSQL URLs from Heroku/render/etc that start with postgres://
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
@@ -47,50 +45,42 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Configure uploads
+# إعدادات رفع الملفات
 app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB
 app.config["ALLOWED_EXTENSIONS"] = {"csv", "xlsx", "xls", "pdf"}
 
-# Configure login manager
+# إعداد login manager
 login_manager.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
 
-# Configure Babel localization settings
+# إعداد التعدد اللغوي
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'ar']
 
-# Function to get the user's locale
 def get_locale():
-    # Get locale from session or default to English
     return session.get('language', 'en')
 
-# Configure Babel for localization
 babel.init_app(app, locale_selector=get_locale)
-
-# Initialize bcrypt for password hashing
 bcrypt.init_app(app)
 
-# Create upload folder if it doesn't exist
+# إنشاء مجلد الرفع إذا لم يكن موجود
 if not os.path.exists(app.config["UPLOAD_FOLDER"]):
     os.makedirs(app.config["UPLOAD_FOLDER"])
 
-# Import and register routes after app initialization to avoid circular imports
+# تهيئة قاعدة البيانات (مرة واحدة فقط)
 with app.app_context():
-    # Import models to ensure tables are created
     from models import User, Report  # noqa: F401
     db.init_app(app)
-    
-    # Drop all tables and recreate them to apply model changes
-    db.drop_all()
-    db.create_all()
-    
-    # Import routes
-    from routes import setup_routes
-    setup_routes(app)
+    db.create_all()  # لا تستخدم db.drop_all() أبداً هنا
 
+# استيراد وتسجيل المسارات
+from routes import setup_routes
+setup_routes(app)
+
+# تحميل المستخدمين للدخول
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
