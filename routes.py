@@ -24,7 +24,14 @@ def setup_routes(app):
             'translations': translations
         }
 
-    # Route for the home page
+    # ---------------------- صفحة البداية (الرئيسية) ----------------------
+    @app.route('/')
+    def index():
+        translations = get_translations(session.get('language', 'en'))
+        return render_template('index.html', translations=translations, now=datetime.now())
+    # ---------------------------------------------------------------------
+
+    # Route for the home page (لوحة الأدمن)
     @app.route('/admin')
     @login_required
     def admin_panel(): 
