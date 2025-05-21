@@ -32,7 +32,6 @@ def setup_routes(app):
         if not getattr(current_user, 'is_admin', False):
             flash('ليس لديك صلاحية دخول لوحة الإدارة', 'danger')
             return redirect(url_for('index'))
-        # كود لوحة التحكم
         return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())
     
     # Route for user registration
@@ -159,7 +158,6 @@ def setup_routes(app):
             flash(translations['not_authorized'], 'danger')
             return redirect(url_for('reports'))
             
-        # Delete the record
         db.session.delete(report)
         db.session.commit()
         
@@ -172,6 +170,12 @@ def setup_routes(app):
         if lang in ['en', 'ar']:
             session['language'] = lang
         return redirect(request.referrer or url_for('index'))
+    
+    # Route for the home page (index) - هذه الإضافة الجديدة
+    @app.route('/')
+    def index():
+        translations = get_translations(session.get('language', 'en'))
+        return render_template('index.html', translations=translations, now=datetime.now())
     
     # Error handlers
     @app.errorhandler(404)
