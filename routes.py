@@ -10,7 +10,6 @@ from forms import RegistrationForm, LoginForm, ReportUploadForm
 from translations import get_translations
 
 def setup_routes(app):
-    
     # Helper function to check allowed file extensions
     def allowed_file(filename):
         return '.' in filename and \
@@ -24,22 +23,35 @@ def setup_routes(app):
             'now': datetime.now(),
             'translations': translations
         }
-               
-    # Route for the home page
+
+    # ---------------------- صفحة البداية (الرئيسية) ----------------------
     @app.route('/')
     def index():
         translations = get_translations(session.get('language', 'en'))
         return render_template('index.html', translations=translations, now=datetime.now())
+    # ---------------------------------------------------------------------
+
+    # Route for the home page (لوحة الأدمن)
+    @app.route('/admin')
+    @login_required
+    def admin_panel(): 
+        if not getattr(current_user, 'is_admin', False):
+            flash('ليس لديك صلاحية دخول لوحة الإدارة', 'danger')
+            return redirect(url_for('index'))
+        # كود لوحة التحكم
+        return render_template(
+            'admin_panel.html',
+            translations=get_translations(session.get('language', 'en')),
+            now=datetime.now()
+        )
     
     # Route for user registration
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         if current_user.is_authenticated:
             return redirect(url_for('dashboard'))
-            
         translations = get_translations(session.get('language', 'en'))
         form = RegistrationForm()
-        
         if form.validate_on_submit():
             hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             user = User(
@@ -51,7 +63,6 @@ def setup_routes(app):
             db.session.commit()
             flash(translations['account_created'], 'success')
             return redirect(url_for('login'))
-            
         return render_template('register.html', form=form, translations=translations, now=datetime.now())
     
     # Route for user login
@@ -59,10 +70,8 @@ def setup_routes(app):
     def login():
         if current_user.is_authenticated:
             return redirect(url_for('dashboard'))
-            
         translations = get_translations(session.get('language', 'en'))
         form = LoginForm()
-        
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
@@ -82,7 +91,6 @@ def setup_routes(app):
                     return redirect(next_page if next_page else url_for('dashboard'))
             else:
                 flash(translations['login_failed'], 'danger')
-                
         return render_template('login.html', form=form, translations=translations, now=datetime.now())
     
     # Route for user logout
@@ -108,11 +116,9 @@ def setup_routes(app):
     def upload_report():
         translations = get_translations(session.get('language', 'en'))
         form = ReportUploadForm()
-        
         # Pre-fill employee name with current user's username
         if request.method == 'GET':
             form.employee_name.data = current_user.username
-        
         if form.validate_on_submit():
             # Create report record with simplified fields
             report = Report(
@@ -125,10 +131,8 @@ def setup_routes(app):
             )
             db.session.add(report)
             db.session.commit()
-            
             flash(translations['report_uploaded'], 'success')
             return redirect(url_for('reports'))
-                
         return render_template('upload_report.html', form=form, translations=translations, now=datetime.now())
     
     # Route for listing reports
@@ -145,16 +149,11 @@ def setup_routes(app):
     def report_detail(report_id):
         translations = get_translations(session.get('language', 'en'))
         report = Report.query.get_or_404(report_id)
-        
         # Check if report belongs to the current user
         if report.user_id != current_user.id:
             flash(translations['not_authorized'], 'danger')
             return redirect(url_for('reports'))
-            
         return render_template('report_detail.html', report=report, translations=translations, now=datetime.now())
-    
-    # Export report functionality will be implemented later
-    # Previously had download_report here
     
     # Route for deleting a report
     @app.route('/reports/<int:report_id>/delete', methods=['POST'])
@@ -162,16 +161,13 @@ def setup_routes(app):
     def delete_report(report_id):
         report = Report.query.get_or_404(report_id)
         translations = get_translations(session.get('language', 'en'))
-        
         # Check if report belongs to the current user
         if report.user_id != current_user.id:
             flash(translations['not_authorized'], 'danger')
             return redirect(url_for('reports'))
-            
         # Delete the record
         db.session.delete(report)
         db.session.commit()
-        
         flash(translations['report_deleted'], 'success')
         return redirect(url_for('reports'))
     
