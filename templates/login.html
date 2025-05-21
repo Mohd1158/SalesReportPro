@@ -1,53 +1,44 @@
-{% extends "base.html" %}
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
 
-{% block title %}{{ translations['app_name'] }} - {{ translations['login'] }}{% endblock %}
+    translations = get_translations(session.get('language', 'en'))
+    form = LoginForm()
 
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>{{ translations['sign_in'] }}</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">{{ translations['email'] }}</label>
-                            {{ form.email(class="form-control", placeholder=translations['email']) }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">{{ translations['password'] }}</label>
-                            {{ form.password(class="form-control", placeholder=translations['password']) }}
-                            {% if form.password.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.password.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            {{ form.submit(class="btn btn-primary btn-lg", value=translations['login']) }}
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-center">
-                    <p class="mb-0">{{ translations['not_registered_yet'] }} <a href="{{ url_for('register') }}">{{ translations['create_account'] }}</a></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+
+        # تحقق الأدمن من متغيرات البيئة
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            from flask_login import login_user, UserMixin
+
+            class AdminUser(UserMixin):
+                id = 0
+                username = ADMIN_USERNAME
+                email = ADMIN_EMAIL
+                is_admin = True
+                is_approved = True
+
+            admin_user = AdminUser()
+            login_user(admin_user)
+            flash(translations['login_success'], 'success')
+            return redirect(url_for('admin_panel'))
+
+        # تحقق المستخدمين من قاعدة البيانات
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.check_password_hash(user.password_hash, password):
+            if not user.is_approved and not user.is_admin:
+                flash(translations['account_pending'], 'warning')
+                return render_template('login.html', form=form, translations=translations, now=datetime.now())
+            login_user(user)
+            flash(translations['login_success'], 'success')
+            if user.is_admin:
+                return redirect(url_for('admin_panel'))
+            else:
+                return redirect(url_for('dashboard'))
+        else:
+            flash(translations['login_failed'], 'danger')
+
+    return render_template('login.html', form=form, translations=translations, now=datetime.now())
