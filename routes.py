@@ -33,8 +33,7 @@ def setup_routes(app):
             flash('ليس لديك صلاحية دخول لوحة الإدارة', 'danger')
             return redirect(url_for('index'))
     # كود لوحة التحكم
-    return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())=datetime.now()
-    )
+    return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())
     
     # Route for user registration
     @app.route('/register', methods=['GET', 'POST'])
