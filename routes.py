@@ -24,16 +24,16 @@ def setup_routes(app):
             'now': datetime.now(),
             'translations': translations
         }
-               
-    # Route for the home page
+    
+    # Route for the admin panel
     @app.route('/admin')
     @login_required
     def admin_panel(): 
         if not getattr(current_user, 'is_admin', False):
             flash('ليس لديك صلاحية دخول لوحة الإدارة', 'danger')
             return redirect(url_for('index'))
-    # كود لوحة التحكم
-    return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())
+        # كود لوحة التحكم
+        return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())
     
     # Route for user registration
     @app.route('/register', methods=['GET', 'POST'])
@@ -146,9 +146,6 @@ def setup_routes(app):
             return redirect(url_for('reports'))
             
         return render_template('report_detail.html', report=report, translations=translations, now=datetime.now())
-    
-    # Export report functionality will be implemented later
-    # Previously had download_report here
     
     # Route for deleting a report
     @app.route('/reports/<int:report_id>/delete', methods=['POST'])
