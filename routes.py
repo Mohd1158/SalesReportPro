@@ -26,10 +26,15 @@ def setup_routes(app):
         }
                
     # Route for the home page
-    @app.route('/')
-    def index():
-        translations = get_translations(session.get('language', 'en'))
-        return render_template('index.html', translations=translations, now=datetime.now())
+    @app.route('/admin')
+    @login_required
+    def admin_panel(): 
+        if not getattr(current_user, 'is_admin', False):
+            flash('ليس لديك صلاحية دخول لوحة الإدارة', 'danger')
+            return redirect(url_for('index'))
+    # كود لوحة التحكم
+    return render_template('admin_panel.html', translations=get_translations(session.get('language', 'en')), now=datetime.now())=datetime.now()
+    )
     
     # Route for user registration
     @app.route('/register', methods=['GET', 'POST'])
