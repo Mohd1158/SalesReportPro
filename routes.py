@@ -66,10 +66,20 @@ def setup_routes(app):
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
+                # Check if the user is approved
+                if not user.is_approved and not user.is_admin:
+                    flash(translations['account_pending'], 'warning')
+                    return render_template('login.html', form=form, translations=translations, now=datetime.now())
+                    
                 login_user(user)
                 next_page = request.args.get('next')
                 flash(translations['login_success'], 'success')
-                return redirect(next_page if next_page else url_for('dashboard'))
+                
+                # Redirect admin users to the admin panel, regular users to dashboard
+                if user.is_admin:
+                    return redirect(next_page if next_page else url_for('admin_panel'))
+                else:
+                    return redirect(next_page if next_page else url_for('dashboard'))
             else:
                 flash(translations['login_failed'], 'danger')
                 
