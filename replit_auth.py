@@ -37,10 +37,9 @@ class UserSessionStorage(BaseStorage):
                 browser_session_key=g.browser_session_key,
                 provider=blueprint.name,
             ).one()
-            token = oauth_record.token
+            return oauth_record.token
         except NoResultFound:
-            token = None
-        return token
+            return None
 
     def set(self, blueprint, token):
         db.session.query(OAuth).filter_by(
@@ -157,6 +156,11 @@ def save_user(user_claims):
             user.username = f"{user.first_name.lower()}.{user.last_name.lower()}"
         else:
             user.username = f"user_{user.id}"
+    
+    # Check if this is the first user in the system - if so, make them an admin
+    total_users = User.query.count()
+    if total_users == 0:
+        user.is_admin = True
     
     merged_user = db.session.merge(user)
     db.session.commit()
