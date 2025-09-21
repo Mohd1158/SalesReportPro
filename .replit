@@ -34,12 +34,12 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 42581
-externalPort = 3000
+localPort = 36245
+externalPort = 3001
 
 [[ports]]
-localPort = 43341
-externalPort = 3001
+localPort = 42581
+externalPort = 3000
 
 [agent]
 integrations = ["python_log_in_with_replit:1.0.0"]
