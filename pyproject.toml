@@ -20,4 +20,5 @@ dependencies = [
     "flask-dance>=7.1.0",
     "oauthlib>=3.3.1",
     "requests>=2.32.5",
+    "replit-object-storage>=1.0.2",
 ]
