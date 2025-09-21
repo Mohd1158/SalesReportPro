@@ -106,19 +106,42 @@ def make_replit_blueprint():
 
     @replit_bp.route("/logout")
     def logout():
-        del replit_bp.token
+        try:
+            del replit_bp.token
+        except:
+            pass  # Token might not exist
+        
         logout_user()
+        session.clear()  # Clear all session data
 
-        end_session_endpoint = issuer_url + "/session/end"
-        encoded_params = urlencode({
-            "client_id":
-            repl_id,
-            "post_logout_redirect_uri":
-            request.url_root,
-        })
-        logout_url = f"{end_session_endpoint}?{encoded_params}"
-
-        return redirect(logout_url)
+        # Check if we're in production or test environment
+        current_issuer = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+        
+        # If using test environment or if session/end endpoint doesn't exist, redirect locally
+        if 'test' in current_issuer.lower() or current_issuer != "https://replit.com/oidc":
+            app.logger.info("Test environment detected, performing local logout")
+            return redirect(url_for('index'))
+        
+        # For production Replit OIDC, try the proper logout flow
+        try:
+            end_session_endpoint = current_issuer + "/session/end"
+            encoded_params = urlencode({
+                "client_id": repl_id,
+                "post_logout_redirect_uri": request.url_root,
+            })
+            logout_url = f"{end_session_endpoint}?{encoded_params}"
+            
+            # Test if the logout endpoint exists before redirecting
+            test_response = requests.head(end_session_endpoint, timeout=5)
+            if test_response.status_code == 404:
+                app.logger.warning("OIDC logout endpoint not found, performing local logout")
+                return redirect(url_for('index'))
+            
+            return redirect(logout_url)
+        except Exception as e:
+            app.logger.error(f"Error during OIDC logout: {e}")
+            # Fallback to local logout
+            return redirect(url_for('index'))
 
     @replit_bp.route("/error")
     def error():
@@ -129,26 +152,57 @@ def make_replit_blueprint():
 
 def get_replit_public_keys():
     """Get Replit's OIDC public keys for JWT verification."""
+    jwks_url = "https://replit.com/oidc/.well-known/jwks.json"
     try:
         issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
-        jwks_url = issuer_url + "/.well-known/jwks.json"
+        # Try the correct JWKS URL first
         response = requests.get(jwks_url, timeout=10)
+        if response.status_code == 404:
+            # Try alternative JWKS URL
+            jwks_url = "https://replit.com/.well-known/jwks.json"
+            response = requests.get(jwks_url, timeout=10)
+        
         response.raise_for_status()
         return response.json()
-    except Exception:
+    except Exception as e:
+        app.logger.error(f"Failed to get JWKS from {jwks_url}: {e}")
         # Fall back to no verification if we can't get the keys
         return None
 
 
 def save_user(user_claims):
-    user = User()
-    user.id = user_claims['sub']
-    user.email = user_claims.get('email')
+    user_id = user_claims['sub']
+    email = user_claims.get('email')
+    
+    # First try to find user by ID (OIDC sub)
+    user = User.query.filter_by(id=user_id).first()
+    
+    # If not found by ID, try to find by email
+    if not user and email:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # Update the user's ID to match the OIDC sub
+            app.logger.info(f"Updating existing user {email} with new OIDC ID {user_id}")
+            user.id = user_id
+    
+    # If still no user found, create a new one
+    if not user:
+        user = User()
+        user.id = user_id
+        
+        # Check if this is the first user in the system - if so, make them an admin
+        total_users = User.query.count()
+        if total_users == 0:
+            user.is_admin = True
+            app.logger.info(f"Making first user {email} an admin")
+    
+    # Update user information from OIDC claims
+    user.email = email
     user.first_name = user_claims.get('first_name')
     user.last_name = user_claims.get('last_name')
     user.profile_image_url = user_claims.get('profile_image_url')
     
-    # Set username to email if not provided, or generate from name
+    # Set username if not already set
     if not user.username:
         if user.email:
             user.username = user.email.split('@')[0]
@@ -157,14 +211,21 @@ def save_user(user_claims):
         else:
             user.username = f"user_{user.id}"
     
-    # Check if this is the first user in the system - if so, make them an admin
-    total_users = User.query.count()
-    if total_users == 0:
-        user.is_admin = True
-    
-    merged_user = db.session.merge(user)
-    db.session.commit()
-    return merged_user
+    try:
+        # Use merge to handle both insert and update
+        merged_user = db.session.merge(user)
+        db.session.commit()
+        app.logger.info(f"Successfully saved user {merged_user.email} with ID {merged_user.id}")
+        return merged_user
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error saving user: {e}")
+        # Try to find the user again in case of concurrent creation
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            app.logger.info(f"Found existing user after error, using {existing_user.email}")
+            return existing_user
+        raise
 
 
 @oauth_authorized.connect
