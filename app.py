@@ -3,9 +3,7 @@ import logging
 from flask import Flask, request, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
-from flask_login import LoginManager
 from flask_babel import Babel
-from flask_bcrypt import Bcrypt
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
@@ -17,13 +15,11 @@ class Base(DeclarativeBase):
 
 # Initialize extensions
 db = SQLAlchemy(model_class=Base)
-login_manager = LoginManager()
 babel = Babel()
-bcrypt = Bcrypt()
 
 # Create Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")  # Default for development
+app.secret_key = os.environ.get("SESSION_SECRET")  # Required for Replit Auth
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Needed for url_for to generate with https
 
 # Configure database
@@ -43,12 +39,6 @@ app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
 app.config["ALLOWED_EXTENSIONS"] = {"csv", "xlsx", "xls", "pdf"}
 
-# Configure login manager
-login_manager.init_app(app)
-login_manager.login_view = "login"
-login_manager.login_message = "Please log in to access this page."
-login_manager.login_message_category = "info"
-
 # Configure Babel localization settings
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'ar']
@@ -61,9 +51,6 @@ def get_locale():
 # Configure Babel for localization
 babel.init_app(app, locale_selector=get_locale)
 
-# Initialize bcrypt for password hashing
-bcrypt.init_app(app)
-
 # Create upload folder if it doesn't exist
 if not os.path.exists(app.config["UPLOAD_FOLDER"]):
     os.makedirs(app.config["UPLOAD_FOLDER"])
@@ -71,7 +58,7 @@ if not os.path.exists(app.config["UPLOAD_FOLDER"]):
 # Import and register routes after app initialization to avoid circular imports
 with app.app_context():
     # Import models to ensure tables are created
-    from models import User, Report  # noqa: F401
+    from models import User, Report, OAuth  # noqa: F401
     db.init_app(app)
     
     # Create tables if they don't exist
@@ -80,8 +67,3 @@ with app.app_context():
     # Import routes
     from routes import setup_routes
     setup_routes(app)
-
-@login_manager.user_loader
-def load_user(user_id):
-    from models import User
-    return User.query.get(int(user_id))

@@ -2,14 +2,18 @@ import os
 import uuid
 from datetime import datetime
 from flask import render_template, redirect, url_for, flash, request, session, jsonify, send_from_directory
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from app import db, bcrypt
+from app import db
 from models import User, Report
-from forms import RegistrationForm, LoginForm, ReportUploadForm
+from forms import ReportUploadForm  # Remove auth forms since we use Replit Auth
 from translations import get_translations
+from replit_auth import make_replit_blueprint, require_login
 
 def setup_routes(app):
+    
+    # Register Replit Auth blueprint
+    app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
     
     # Helper function to check allowed file extensions
     def allowed_file(filename):
@@ -31,72 +35,24 @@ def setup_routes(app):
         translations = get_translations(session.get('language', 'en'))
         return render_template('index.html', translations=translations, now=datetime.now())
     
-    # Route for user registration
-    @app.route('/register', methods=['GET', 'POST'])
+    # Redirect old register route to Replit Auth
+    @app.route('/register')
     def register():
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-            
-        translations = get_translations(session.get('language', 'en'))
-        form = RegistrationForm()
-        
-        if form.validate_on_submit():
-            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-            user = User(
-                username=form.username.data,
-                email=form.email.data,
-                password_hash=hashed_password
-            )
-            db.session.add(user)
-            db.session.commit()
-            flash(translations['account_created'], 'success')
-            return redirect(url_for('login'))
-            
-        return render_template('register.html', form=form, translations=translations, now=datetime.now())
+        return redirect(url_for('replit_auth.login'))
     
-    # Route for user login
-    @app.route('/login', methods=['GET', 'POST'])
+    # Redirect old login route to Replit Auth
+    @app.route('/login')
     def login():
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-            
-        translations = get_translations(session.get('language', 'en'))
-        form = LoginForm()
-        
-        if form.validate_on_submit():
-            user = User.query.filter_by(email=form.email.data).first()
-            if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
-                # Check if the user is approved
-                if not user.is_approved and not user.is_admin:
-                    flash(translations['account_pending'], 'warning')
-                    return render_template('login.html', form=form, translations=translations, now=datetime.now())
-                    
-                login_user(user)
-                next_page = request.args.get('next')
-                flash(translations['login_success'], 'success')
-                
-                # Redirect admin users to the admin panel, regular users to dashboard
-                if user.is_admin:
-                    return redirect(next_page if next_page else url_for('admin_panel'))
-                else:
-                    return redirect(next_page if next_page else url_for('dashboard'))
-            else:
-                flash(translations['login_failed'], 'danger')
-                
-        return render_template('login.html', form=form, translations=translations, now=datetime.now())
+        return redirect(url_for('replit_auth.login'))
     
-    # Route for user logout
+    # Redirect old logout route to Replit Auth
     @app.route('/logout')
-    @login_required
     def logout():
-        logout_user()
-        translations = get_translations(session.get('language', 'en'))
-        flash(translations['logout_success'], 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('replit_auth.logout'))
     
     # Route for user dashboard
     @app.route('/dashboard')
-    @login_required
+    @require_login
     def dashboard():
         translations = get_translations(session.get('language', 'en'))
         recent_reports = Report.query.filter_by(user_id=current_user.id).order_by(Report.created_at.desc()).limit(5).all()
@@ -104,25 +60,24 @@ def setup_routes(app):
     
     # Route for report upload
     @app.route('/upload', methods=['GET', 'POST'])
-    @login_required
+    @require_login
     def upload_report():
         translations = get_translations(session.get('language', 'en'))
         form = ReportUploadForm()
         
-        # Pre-fill employee name with current user's username
+        # Pre-fill employee name with current user's display name
         if request.method == 'GET':
-            form.employee_name.data = current_user.username
+            form.employee_name.data = current_user.display_name
         
         if form.validate_on_submit():
             # Create report record with simplified fields
-            report = Report(
-                employee_name=form.employee_name.data,
-                product_model=form.product_model.data,
-                sale_price=form.sale_price.data,
-                units_sold=form.units_sold.data,
-                total_sales=form.total_sales.data,
-                user_id=current_user.id
-            )
+            report = Report()
+            report.employee_name = form.employee_name.data
+            report.product_model = form.product_model.data
+            report.sale_price = form.sale_price.data
+            report.units_sold = form.units_sold.data
+            report.total_sales = form.total_sales.data
+            report.user_id = current_user.id
             db.session.add(report)
             db.session.commit()
             
@@ -133,7 +88,7 @@ def setup_routes(app):
     
     # Route for listing reports
     @app.route('/reports')
-    @login_required
+    @require_login
     def reports():
         translations = get_translations(session.get('language', 'en'))
         user_reports = Report.query.filter_by(user_id=current_user.id).order_by(Report.created_at.desc()).all()
@@ -141,7 +96,7 @@ def setup_routes(app):
     
     # Route for report details
     @app.route('/reports/<int:report_id>')
-    @login_required
+    @require_login
     def report_detail(report_id):
         translations = get_translations(session.get('language', 'en'))
         report = Report.query.get_or_404(report_id)
@@ -158,7 +113,7 @@ def setup_routes(app):
     
     # Route for deleting a report
     @app.route('/reports/<int:report_id>/delete', methods=['POST'])
-    @login_required
+    @require_login
     def delete_report(report_id):
         report = Report.query.get_or_404(report_id)
         translations = get_translations(session.get('language', 'en'))
