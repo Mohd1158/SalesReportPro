@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     
     # Keep existing fields for backward compatibility
     username = db.Column(db.String(64), unique=True, nullable=True)  # Made nullable for Replit Auth users
+    password_hash = db.Column(db.String(256), nullable=True)  # For traditional login
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     reports = db.relationship('Report', backref='user', lazy='dynamic')
