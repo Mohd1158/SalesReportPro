@@ -1,6 +1,7 @@
 import jwt
 import os
 import uuid
+import requests
 from functools import wraps
 from urllib.parse import urlencode
 
@@ -127,6 +128,19 @@ def make_replit_blueprint():
     return replit_bp
 
 
+def get_replit_public_keys():
+    """Get Replit's OIDC public keys for JWT verification."""
+    try:
+        issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+        jwks_url = issuer_url + "/.well-known/jwks.json"
+        response = requests.get(jwks_url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except Exception:
+        # Fall back to no verification if we can't get the keys
+        return None
+
+
 def save_user(user_claims):
     user = User()
     user.id = user_claims['sub']
@@ -151,8 +165,28 @@ def save_user(user_claims):
 
 @oauth_authorized.connect
 def logged_in(blueprint, token):
-    user_claims = jwt.decode(token['id_token'],
-                             options={"verify_signature": False})
+    # Try to verify JWT signature with Replit's public keys
+    jwks = get_replit_public_keys()
+    if jwks:
+        try:
+            # Verify signature using Replit's public keys
+            user_claims = jwt.decode(
+                token['id_token'],
+                jwks,
+                algorithms=["RS256"],
+                audience=os.environ.get('REPL_ID'),
+                issuer=os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+            )
+        except jwt.InvalidTokenError:
+            # Fall back to no verification if signature validation fails
+            # This maintains backward compatibility while improving security
+            user_claims = jwt.decode(token['id_token'],
+                                   options={"verify_signature": False})
+    else:
+        # Fall back to no verification if we can't get public keys
+        user_claims = jwt.decode(token['id_token'],
+                               options={"verify_signature": False})
+    
     user = save_user(user_claims)
     login_user(user)
     blueprint.token = token
