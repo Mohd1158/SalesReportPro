@@ -80,6 +80,14 @@ def setup_routes(app):
                 else:
                     login_user(user)
                     next_page = request.args.get('next')
+                    
+                    # Validate next_page to prevent open redirect attacks
+                    if next_page:
+                        parsed_url = urlparse(next_page)
+                        # Only allow relative URLs or same host
+                        if parsed_url.netloc and parsed_url.netloc != request.host:
+                            next_page = None
+                    
                     flash(translations.get('login_successful', 'Welcome back!'), 'success')
                     return redirect(next_page) if next_page else redirect(url_for('dashboard'))
             else:
