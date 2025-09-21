@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request, session, jsonify, send_from_directory
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
@@ -135,7 +136,15 @@ def setup_routes(app):
     def set_language(lang):
         if lang in ['en', 'ar']:
             session['language'] = lang
-        return redirect(request.referrer or url_for('index'))
+        
+        # Validate referrer URL to prevent open redirect attacks
+        if request.referrer:
+            parsed_referrer = urlparse(request.referrer)
+            # Only redirect if it's a relative URL or same domain
+            if not parsed_referrer.netloc or parsed_referrer.netloc == request.host:
+                return redirect(request.referrer)
+        
+        return redirect(url_for('index'))
     
     # Error handlers
     @app.errorhandler(404)
