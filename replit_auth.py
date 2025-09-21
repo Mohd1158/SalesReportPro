@@ -230,6 +230,40 @@ def require_login(f):
     return decorated_function
 
 
+def require_admin(f):
+    """Decorator that requires both login and admin privileges"""
+    
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            session["next_url"] = get_next_navigation_url(request)
+            return redirect(url_for('replit_auth.login'))
+        
+        if not current_user.is_administrator():
+            from flask import flash
+            from translations import get_translations
+            translations = get_translations(session.get('language', 'en'))
+            flash(translations.get('access_denied', 'Access denied. Admin privileges required.'), 'danger')
+            return redirect(url_for('dashboard'))
+        
+        # Check token expiry like in require_login
+        expires_in = replit.token.get('expires_in', 0)
+        if expires_in < 0:
+            issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+            refresh_token_url = issuer_url + "/token"
+            try:
+                token = replit.refresh_token(token_url=refresh_token_url,
+                                             client_id=os.environ['REPL_ID'])
+            except InvalidGrantError:
+                session["next_url"] = get_next_navigation_url(request)
+                return redirect(url_for('replit_auth.login'))
+            replit.token_updater(token)
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def get_next_navigation_url(request):
     is_navigation_url = request.headers.get(
         'Sec-Fetch-Mode') == 'navigate' and request.headers.get(
