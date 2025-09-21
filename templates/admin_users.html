@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.get('manage_users', 'Manage Users') }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">
+                    <i class="fas fa-users me-2"></i>{{ translations.get('manage_users', 'Manage Users') }}
+                </h1>
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>{{ translations.get('back_to_admin', 'Back to Admin') }}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ translations.get('all_users', 'All Users') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if users.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{ translations.get('name', 'Name') }}</th>
+                                        <th>{{ translations.get('email', 'Email') }}</th>
+                                        <th>{{ translations.get('joined', 'Joined') }}</th>
+                                        <th>{{ translations.get('status', 'Status') }}</th>
+                                        <th>{{ translations.get('actions', 'Actions') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if user.profile_image_url %}
+                                                    <img src="{{ user.profile_image_url }}" alt="{{ user.display_name }}" class="rounded-circle me-2" width="32" height="32">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-user text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div class="fw-bold">{{ user.display_name }}</div>
+                                                    {% if user.username %}
+                                                        <small class="text-muted">@{{ user.username }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email or 'N/A' }}</td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
+                                        <td>
+                                            {% if user.is_admin %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-crown"></i> {{ translations.get('admin', 'Admin') }}
+                                                </span>
+                                            {% endif %}
+                                            {% if user.is_approved %}
+                                                <span class="badge bg-success">{{ translations.get('approved', 'Approved') }}</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ translations.get('pending', 'Pending') }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- Admin Toggle -->
+                                                {% if user.id != current_user.id or not user.is_admin or (user.is_admin and (users.items|selectattr('is_admin', 'equalto', True)|list|length > 1)) %}
+                                                <form method="post" action="{{ url_for('toggle_admin', user_id=user.id) }}" class="d-inline">
+                                                    {% if user.is_admin %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-warning" 
+                                                                onclick="return confirm('{{ translations.get('confirm_demote_admin', 'Are you sure you want to remove admin privileges from this user?') }}')">
+                                                            <i class="fas fa-user-minus"></i>
+                                                            {{ translations.get('demote', 'Demote') }}
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                                            <i class="fas fa-user-plus"></i>
+                                                            {{ translations.get('make_admin', 'Make Admin') }}
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                                {% endif %}
+                                                
+                                                <!-- Approval Toggle -->
+                                                <form method="post" action="{{ url_for('toggle_approval', user_id=user.id) }}" class="d-inline">
+                                                    {% if user.is_approved %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                onclick="return confirm('{{ translations.get('confirm_unapprove', 'Are you sure you want to unapprove this user?') }}')">
+                                                            <i class="fas fa-user-times"></i>
+                                                            {{ translations.get('unapprove', 'Unapprove') }}
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-user-check"></i>
+                                                            {{ translations.get('approve', 'Approve') }}
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if users.pages > 1 %}
+                        <nav aria-label="Users pagination">
+                            <ul class="pagination justify-content-center mt-3">
+                                {% if users.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin_users', page=users.prev_num) }}">
+                                            {{ translations.get('previous', 'Previous') }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in users.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != users.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('admin_users', page=page_num) }}">{{ page_num }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if users.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin_users', page=users.next_num) }}">
+                                            {{ translations.get('next', 'Next') }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{{ translations.get('no_users_found', 'No users found.') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

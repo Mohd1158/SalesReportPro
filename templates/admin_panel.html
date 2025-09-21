@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.get('admin_panel', 'Admin Panel') }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">
+                    <i class="fas fa-cogs me-2"></i>{{ translations.get('admin_panel', 'Admin Panel') }}
+                </h1>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-white">{{ translations.get('total_users', 'Total Users') }}</h5>
+                            <h2 class="text-white">{{ total_users }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-white">{{ translations.get('admin_users', 'Admin Users') }}</h5>
+                            <h2 class="text-white">{{ admin_users }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-shield fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>{{ translations.get('quick_actions', 'Quick Actions') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users me-2"></i>{{ translations.get('manage_users', 'Manage Users') }}
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('reports') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-file-alt me-2"></i>{{ translations.get('view_all_reports', 'View All Reports') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-clock me-2"></i>{{ translations.get('recent_users', 'Recent Users') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{ translations.get('name', 'Name') }}</th>
+                                        <th>{{ translations.get('email', 'Email') }}</th>
+                                        <th>{{ translations.get('joined', 'Joined') }}</th>
+                                        <th>{{ translations.get('status', 'Status') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>
+                                            {{ user.display_name }}
+                                            {% if user.is_admin %}
+                                                <span class="badge bg-warning text-dark ms-2">
+                                                    <i class="fas fa-crown"></i> {{ translations.get('admin', 'Admin') }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.email or 'N/A' }}</td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
+                                        <td>
+                                            {% if user.is_approved %}
+                                                <span class="badge bg-success">{{ translations.get('approved', 'Approved') }}</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ translations.get('pending', 'Pending') }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+                                {{ translations.get('view_all_users', 'View All Users') }}
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">{{ translations.get('no_users_yet', 'No users registered yet.') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
