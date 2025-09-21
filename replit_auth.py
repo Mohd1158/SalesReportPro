@@ -169,27 +169,54 @@ def save_user(user_claims):
 
 @oauth_authorized.connect
 def logged_in(blueprint, token):
-    # Try to verify JWT signature with Replit's public keys
-    jwks = get_replit_public_keys()
-    if jwks:
-        try:
-            # Verify signature using Replit's public keys
-            user_claims = jwt.decode(
-                token['id_token'],
-                jwks,
-                algorithms=["RS256"],
-                audience=os.environ.get('REPL_ID'),
-                issuer=os.environ.get('ISSUER_URL', "https://replit.com/oidc")
-            )
-        except jwt.InvalidTokenError:
-            # Fall back to no verification if signature validation fails
-            # This maintains backward compatibility while improving security
-            user_claims = jwt.decode(token['id_token'],
-                                   options={"verify_signature": False})
-    else:
-        # Fall back to no verification if we can't get public keys
-        user_claims = jwt.decode(token['id_token'],
-                               options={"verify_signature": False})
+    # Verify JWT signature with Replit's public keys
+    try:
+        jwks = get_replit_public_keys()
+        if not jwks:
+            # Fail closed - redirect to error if we can't get public keys
+            return redirect(url_for('replit_auth.error'))
+        
+        # Decode header to get key ID
+        unverified_header = jwt.get_unverified_header(token['id_token'])
+        kid = unverified_header.get('kid')
+        
+        # Find the correct key from JWKS
+        rsa_key = None
+        for key in jwks.get('keys', []):
+            if key.get('kid') == kid:
+                rsa_key = {
+                    'kty': key.get('kty'),
+                    'kid': key.get('kid'),
+                    'use': key.get('use'),
+                    'n': key.get('n'),
+                    'e': key.get('e')
+                }
+                break
+        
+        if not rsa_key:
+            # Key not found in JWKS - fail closed
+            return redirect(url_for('replit_auth.error'))
+        
+        # Get REPL_ID for audience validation
+        repl_id = os.environ.get('REPL_ID')
+        if not repl_id:
+            return redirect(url_for('replit_auth.error'))
+        
+        # Verify the token with proper key and audience
+        user_claims = jwt.decode(
+            token['id_token'],
+            rsa_key,
+            algorithms=["RS256"],
+            audience=repl_id,
+            issuer=os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+        )
+        
+    except jwt.InvalidTokenError as e:
+        # Fail closed - redirect to error page on verification failure
+        return redirect(url_for('replit_auth.error'))
+    except Exception as e:
+        # Unexpected error - fail closed
+        return redirect(url_for('replit_auth.error'))
     
     user = save_user(user_claims)
     login_user(user)
