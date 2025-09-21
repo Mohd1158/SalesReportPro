@@ -73,9 +73,9 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <!-- Admin Toggle -->
-                                                {% if user.id != current_user.id or not user.is_admin or (user.is_admin and (users.items|selectattr('is_admin', 'equalto', True)|list|length > 1)) %}
+                                                <!-- Admin Toggle with CSRF Protection -->
                                                 <form method="post" action="{{ url_for('toggle_admin', user_id=user.id) }}" class="d-inline">
+                                                    {{ admin_forms[user.id].hidden_tag() }}
                                                     {% if user.is_admin %}
                                                         <button type="submit" class="btn btn-sm btn-outline-warning" 
                                                                 onclick="return confirm('{{ translations.get('confirm_demote_admin', 'Are you sure you want to remove admin privileges from this user?') }}')">
@@ -89,10 +89,10 @@
                                                         </button>
                                                     {% endif %}
                                                 </form>
-                                                {% endif %}
                                                 
-                                                <!-- Approval Toggle -->
+                                                <!-- Approval Toggle with CSRF Protection -->
                                                 <form method="post" action="{{ url_for('toggle_approval', user_id=user.id) }}" class="d-inline">
+                                                    {{ approval_forms[user.id].hidden_tag() }}
                                                     {% if user.is_approved %}
                                                         <button type="submit" class="btn btn-sm btn-outline-danger" 
                                                                 onclick="return confirm('{{ translations.get('confirm_unapprove', 'Are you sure you want to unapprove this user?') }}')">

@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
 from models import User, Report
-from forms import ReportUploadForm  # Remove auth forms since we use Replit Auth
+from forms import ReportUploadForm, AdminToggleForm, ApprovalToggleForm
 from translations import get_translations
 from replit_auth import make_replit_blueprint, require_login, require_admin
 
@@ -168,22 +168,42 @@ def setup_routes(app):
         page = request.args.get('page', 1, type=int)
         users = User.query.order_by(User.created_at.desc()).paginate(
             page=page, per_page=20, error_out=False)
+        
+        # Create CSRF forms for each user
+        admin_forms = {user.id: AdminToggleForm() for user in users.items}
+        approval_forms = {user.id: ApprovalToggleForm() for user in users.items}
+        
         return render_template('admin_users.html', 
                              users=users, 
+                             admin_forms=admin_forms,
+                             approval_forms=approval_forms,
                              translations=translations, 
                              now=datetime.now())
     
     @app.route('/admin/users/<user_id>/toggle-admin', methods=['POST'])
     @require_admin
     def toggle_admin(user_id):
+        form = AdminToggleForm()
         translations = get_translations(session.get('language', 'en'))
+        
+        # Validate CSRF token
+        if not form.validate_on_submit():
+            flash(translations.get('invalid_request', 'Invalid request. Please try again.'), 'danger')
+            return redirect(url_for('admin_users'))
+        
         user = User.query.get_or_404(user_id)
         
-        # Prevent demoting yourself if you're the only admin
-        if user.id == current_user.id and user.is_admin:
+        # Enhanced admin lockout prevention
+        if user.is_admin:
+            # Check if this would leave no admins
             admin_count = User.query.filter_by(is_admin=True).count()
             if admin_count <= 1:
-                flash(translations.get('cannot_demote_only_admin', 'Cannot demote yourself as the only admin.'), 'warning')
+                flash(translations.get('cannot_demote_last_admin', 'Cannot demote the last admin. There must always be at least one admin.'), 'warning')
+                return redirect(url_for('admin_users'))
+                
+            # Prevent self-demotion if you're the only admin
+            if user.id == current_user.id:
+                flash(translations.get('cannot_demote_self', 'You cannot demote yourself. Ask another admin to do this.'), 'warning')
                 return redirect(url_for('admin_users'))
         
         # Toggle admin status
@@ -191,14 +211,21 @@ def setup_routes(app):
         db.session.commit()
         
         action = translations.get('promoted', 'promoted') if user.is_admin else translations.get('demoted', 'demoted')
-        flash(f"{user.display_name} {translations.get('has_been', 'has been')} {action} {translations.get('admin_status', 'admin status')}.", 'success')
+        flash(f"{user.display_name} {translations.get('has_been', 'has been')} {action} {translations.get('admin_status', 'to admin')}.", 'success')
         
         return redirect(url_for('admin_users'))
     
     @app.route('/admin/users/<user_id>/toggle-approval', methods=['POST'])
     @require_admin
     def toggle_approval(user_id):
+        form = ApprovalToggleForm()
         translations = get_translations(session.get('language', 'en'))
+        
+        # Validate CSRF token
+        if not form.validate_on_submit():
+            flash(translations.get('invalid_request', 'Invalid request. Please try again.'), 'danger')
+            return redirect(url_for('admin_users'))
+        
         user = User.query.get_or_404(user_id)
         
         # Toggle approval status

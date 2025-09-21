@@ -37,3 +37,12 @@ class ReportUploadForm(FlaskForm):
     total_sales = FloatField('Total Sales', validators=[DataRequired(), NumberRange(min=0)])
     # File field is removed per request
     submit = SubmitField('Submit Report')
+
+# Admin forms with CSRF protection
+class AdminToggleForm(FlaskForm):
+    """CSRF-protected form for admin role changes"""
+    submit = SubmitField('Toggle Admin')
+
+class ApprovalToggleForm(FlaskForm):
+    """CSRF-protected form for user approval changes"""
+    submit = SubmitField('Toggle Approval')
