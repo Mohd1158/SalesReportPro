@@ -3,18 +3,16 @@ import uuid
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request, session, jsonify, send_from_directory
-from flask_login import login_required, current_user
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
 from models import User, Report
-from forms import ReportUploadForm, AdminToggleForm, ApprovalToggleForm
+from forms import ReportUploadForm, AdminToggleForm, ApprovalToggleForm, LoginForm, RegistrationForm
 from translations import get_translations
-from replit_auth import make_replit_blueprint, require_login, require_admin
+from auth import require_login, require_admin, authenticate_user, register_user
 
 def setup_routes(app):
     
-    # Register Replit Auth blueprint
-    app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
     
     # Helper function to check allowed file extensions
     def allowed_file(filename):
@@ -36,20 +34,67 @@ def setup_routes(app):
         translations = get_translations(session.get('language', 'en'))
         return render_template('index.html', translations=translations, now=datetime.now())
     
-    # Redirect old register route to Replit Auth
-    @app.route('/register')
+    # Registration route
+    @app.route('/register', methods=['GET', 'POST'])
     def register():
-        return redirect(url_for('replit_auth.login'))
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+        
+        form = RegistrationForm()
+        translations = get_translations(session.get('language', 'en'))
+        
+        if form.validate_on_submit():
+            user, error = register_user(
+                username=form.username.data,
+                email=form.email.data,
+                password=form.password.data
+            )
+            
+            if user:
+                login_user(user)
+                flash(translations.get('registration_successful', 'Registration successful! Welcome!'), 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash(error or translations.get('registration_failed', 'Registration failed. Please try again.'), 'danger')
+        
+        return render_template('register.html', form=form, translations=translations, now=datetime.now())
     
-    # Redirect old login route to Replit Auth
-    @app.route('/login')
+    # Login route
+    @app.route('/login', methods=['GET', 'POST'])
     def login():
-        return redirect(url_for('replit_auth.login'))
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+        
+        form = LoginForm()
+        translations = get_translations(session.get('language', 'en'))
+        
+        if form.validate_on_submit():
+            user = authenticate_user(
+                email=form.email.data,
+                password=form.password.data
+            )
+            
+            if user:
+                if not user.is_approved:
+                    flash(translations.get('not_approved', 'Your account is pending approval. Please wait for an administrator to approve your account.'), 'warning')
+                else:
+                    login_user(user)
+                    next_page = request.args.get('next')
+                    flash(translations.get('login_successful', 'Welcome back!'), 'success')
+                    return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            else:
+                flash(translations.get('invalid_credentials', 'Invalid email or password'), 'danger')
+        
+        return render_template('login.html', form=form, translations=translations, now=datetime.now())
     
-    # Redirect old logout route to Replit Auth
+    # Logout route
     @app.route('/logout')
+    @login_required
     def logout():
-        return redirect(url_for('replit_auth.logout'))
+        logout_user()
+        translations = get_translations(session.get('language', 'en'))
+        flash(translations.get('logged_out', 'You have been logged out successfully.'), 'info')
+        return redirect(url_for('index'))
     
     # Route for user dashboard
     @app.route('/dashboard')

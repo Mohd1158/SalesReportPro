@@ -47,6 +47,16 @@
                     <p class="mb-0">{{ translations['not_registered_yet'] }} <a href="{{ url_for('register') }}">{{ translations['create_account'] }}</a></p>
                 </div>
             </div>
+            
+            <!-- Test Account Info -->
+            <div class="card mt-3 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">{{ translations.get('test_account', 'Test Account') }}</h6>
+                    <p class="mb-1 small"><strong>Email:</strong> mohd.jassim@khalaifat.com</p>
+                    <p class="mb-0 small"><strong>Password:</strong> Moh11588moh</p>
+                    <p class="mb-0 small text-muted mt-2">{{ translations.get('admin_privileges', 'This account has admin privileges') }}</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
