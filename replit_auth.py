@@ -190,11 +190,16 @@ def save_user(user_claims):
         user = User()
         user.id = user_id
         
-        # Check if this is the first user in the system - if so, make them an admin
-        total_users = User.query.count()
-        if total_users == 0:
+        # Check if this is the primary admin account or the first user
+        if email == 'mohd.jassim@khalaifat.com':
             user.is_admin = True
-            app.logger.info(f"Making first user {email} an admin")
+            app.logger.info(f"Making primary admin account {email} an admin")
+        else:
+            # Check if this is the first user in the system - if so, make them an admin
+            total_users = User.query.count()
+            if total_users == 0:
+                user.is_admin = True
+                app.logger.info(f"Making first user {email} an admin")
     
     # Update user information from OIDC claims
     user.email = email
