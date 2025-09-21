@@ -74,8 +74,7 @@ with app.app_context():
     from models import User, Report  # noqa: F401
     db.init_app(app)
     
-    # Drop all tables and recreate them to apply model changes
-    db.drop_all()
+    # Create tables if they don't exist
     db.create_all()
     
     # Import routes
