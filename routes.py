@@ -9,7 +9,7 @@ from app import db
 from models import User, Report
 from forms import ReportUploadForm  # Remove auth forms since we use Replit Auth
 from translations import get_translations
-from replit_auth import make_replit_blueprint, require_login
+from replit_auth import make_replit_blueprint, require_login, require_admin
 
 def setup_routes(app):
     
@@ -146,6 +146,75 @@ def setup_routes(app):
         
         return redirect(url_for('index'))
     
+    # Admin routes
+    @app.route('/admin')
+    @require_admin
+    def admin_panel():
+        translations = get_translations(session.get('language', 'en'))
+        total_users = User.query.count()
+        admin_users = User.query.filter_by(is_admin=True).count()
+        recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+        return render_template('admin_panel.html', 
+                             total_users=total_users,
+                             admin_users=admin_users,
+                             recent_users=recent_users,
+                             translations=translations, 
+                             now=datetime.now())
+    
+    @app.route('/admin/users')
+    @require_admin
+    def admin_users():
+        translations = get_translations(session.get('language', 'en'))
+        page = request.args.get('page', 1, type=int)
+        users = User.query.order_by(User.created_at.desc()).paginate(
+            page=page, per_page=20, error_out=False)
+        return render_template('admin_users.html', 
+                             users=users, 
+                             translations=translations, 
+                             now=datetime.now())
+    
+    @app.route('/admin/users/<user_id>/toggle-admin', methods=['POST'])
+    @require_admin
+    def toggle_admin(user_id):
+        translations = get_translations(session.get('language', 'en'))
+        user = User.query.get_or_404(user_id)
+        
+        # Prevent demoting yourself if you're the only admin
+        if user.id == current_user.id and user.is_admin:
+            admin_count = User.query.filter_by(is_admin=True).count()
+            if admin_count <= 1:
+                flash(translations.get('cannot_demote_only_admin', 'Cannot demote yourself as the only admin.'), 'warning')
+                return redirect(url_for('admin_users'))
+        
+        # Toggle admin status
+        user.is_admin = not user.is_admin
+        db.session.commit()
+        
+        action = translations.get('promoted', 'promoted') if user.is_admin else translations.get('demoted', 'demoted')
+        flash(f"{user.display_name} {translations.get('has_been', 'has been')} {action} {translations.get('admin_status', 'admin status')}.", 'success')
+        
+        return redirect(url_for('admin_users'))
+    
+    @app.route('/admin/users/<user_id>/toggle-approval', methods=['POST'])
+    @require_admin
+    def toggle_approval(user_id):
+        translations = get_translations(session.get('language', 'en'))
+        user = User.query.get_or_404(user_id)
+        
+        # Toggle approval status
+        user.is_approved = not user.is_approved
+        if user.is_approved:
+            user.approval_date = datetime.now()
+        else:
+            user.approval_date = None
+        
+        db.session.commit()
+        
+        action = translations.get('approved', 'approved') if user.is_approved else translations.get('unapproved', 'unapproved')
+        flash(f"{user.display_name} {translations.get('has_been', 'has been')} {action}.", 'success')
+        
+        return redirect(url_for('admin_users'))
+
     # Error handlers
     @app.errorhandler(404)
     def page_not_found(e):
