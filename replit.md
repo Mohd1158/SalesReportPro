@@ -21,13 +21,14 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Flask with modular design using blueprints
 - **Database ORM**: SQLAlchemy with declarative base for model definitions
 - **Form Handling**: WTForms with Flask-WTF for form validation and CSRF protection
-- **Authentication**: Traditional email/password authentication with Flask-Login and secure password hashing
+- **Authentication**: Replit Auth OAuth2 integration with fallback user management
 - **Session Management**: Flask sessions with secure secret key configuration
 - **File Upload**: Werkzeug secure filename handling with configurable upload limits
 
 ### Data Models
-- **User Model**: Stores user accounts with username, email, password hash, admin roles and approval system
+- **User Model**: Supports both Replit Auth users and legacy username-based accounts with admin roles and approval system
 - **Report Model**: Stores sales data including employee information, product details, pricing, and sales metrics
+- **OAuth Model**: Manages OAuth tokens for Replit authentication
 
 ### Security Features
 - **CSRF Protection**: Flask-WTF CSRF tokens on all forms
@@ -57,10 +58,9 @@ Preferred communication style: Simple, everyday language.
 - **Connection Pooling**: Configured with pool recycling and pre-ping for reliability
 
 ### Authentication System
-- **Flask-Login**: User session management and authentication
-- **Password Security**: Werkzeug secure password hashing (scrypt)
-- **Session Security**: CSRF protection and secure session handling
-- **Admin System**: Role-based access control with admin privileges
+- **Replit Auth**: OAuth2 integration using Flask-Dance
+- **JWT**: Token handling for OAuth authentication
+- **Flask-Dance**: OAuth consumer blueprint for Replit integration
 
 ### Frontend Libraries
 - **Bootstrap 5**: UI framework with Replit's dark theme
